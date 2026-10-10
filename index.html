@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniSocial</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <h1>MiniSocial</h1>
+        <span>Connect. Share. Smile.</span>
+    </header>
+
+    <main class="container">
+
+        <section class="profile card">
+            <h2>Welcome!</h2>
+            <label for="username">Your username</label>
+            <input type="text" id="username" placeholder="Enter your name">
+            <button id="saveName">Save Name</button>
+            <p id="welcomeMessage">Choose a username to get started.</p>
+        </section>
+
+        <section class="create-post card">
+            <h2>Create a post</h2>
+            <textarea id="postText"
+                placeholder="What's on your mind?"
+                maxlength="500"></textarea>
+            <div class="post-actions">
+                <span id="charCount">0/500</span>
+                <button id="publishBtn">Publish Post</button>
+            </div>
+        </section>
+
+        <section class="feed">
+            <h2>Latest Posts</h2>
+            <div id="posts">
+                <p class="empty-message">No posts yet. Be the first!</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Made with ❤️ by you | MiniSocial</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

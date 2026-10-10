@@ -1,0 +1,172 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f4f8;
+    color: #222;
+}
+
+.navbar {
+    background: #5b4bdb;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.navbar h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+}
+
+.navbar span {
+    font-size: 14px;
+}
+
+.container {
+    width: 100%;
+    max-width: 650px;
+    margin: 25px auto;
+    padding: 0 15px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 12px #0000000d;
+}
+
+h2 {
+    margin-top: 0;
+    font-size: 20px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #d6d6e0;
+    border-radius: 8px;
+    font: inherit;
+}
+
+textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+button {
+    background: #5b4bdb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 16px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #4334b6;
+}
+
+.post-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+#charCount {
+    color: #777;
+    font-size: 13px;
+}
+
+.feed h2 {
+    margin-bottom: 15px;
+}
+
+.post {
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    overflow-wrap: anywhere;
+    box-shadow: 0 3px 12px #0000000d;
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.post-header strong {
+    color: #5b4bdb;
+}
+
+.post-time {
+    font-size: 12px;
+    color: #777;
+}
+
+.post-content {
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.post-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.like-btn {
+    background: #eeeaff;
+    color: #5b4bdb;
+}
+
+.delete-btn {
+    background: #ffeded;
+    color: #c62828;
+}
+
+.empty-message {
+    text-align: center;
+    color: #777;
+    padding: 25px 10px;
+    background: white;
+    border-radius: 12px;
+}
+
+footer {
+    text-align: center;
+    color: #777;
+    padding: 20px;
+    font-size: 13px;
+}
+
+@media (max-width: 480px) {
+    .navbar h1 {
+        font-size: 24px;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    .post-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    button {
+        padding: 10px 12px;
+    }
+}
