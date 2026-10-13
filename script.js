@@ -1,15 +1,22 @@
 
+const SUPABASE_URL = "https://ovmtfaypbmdokncqmfts.supabase.co";
+const SUPABASE_KEY = "sb_publishable_9D5iFxEKHNY3RDMeA3dk5w_OBbAtxPP";
+
+const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
 const usernameInput = document.getElementById("username");
 const saveNameBtn = document.getElementById("saveName");
 const welcomeMessage = document.getElementById("welcomeMessage");
-
 const postText = document.getElementById("postText");
 const publishBtn = document.getElementById("publishBtn");
 const postsContainer = document.getElementById("posts");
 const charCount = document.getElementById("charCount");
 
 let username = localStorage.getItem("miniSocialName") || "";
-let posts = JSON.parse(localStorage.getItem("miniSocialPosts") || "[]");
+let posts = [];
 
 usernameInput.value = username;
 
@@ -19,11 +26,7 @@ function updateWelcome() {
         : "Choose a username to get started.";
 }
 
-function savePosts() {
-    localStorage.setItem("miniSocialPosts", JSON.stringify(posts));
-}
-
-function saveName() {
+saveNameBtn.addEventListener("click", () => {
     const name = usernameInput.value.trim();
 
     if (!name) {
@@ -35,43 +38,60 @@ function saveName() {
     localStorage.setItem("miniSocialName", username);
     usernameInput.value = username;
     updateWelcome();
-    renderPosts();
-}
-
-saveNameBtn.addEventListener("click", saveName);
+});
 
 postText.addEventListener("input", () => {
     charCount.textContent = `${postText.value.length}/500`;
 });
 
-publishBtn.addEventListener("click", () => {
+publishBtn.addEventListener("click", async () => {
     if (!username) {
         alert("Please save your username first!");
-        usernameInput.focus();
         return;
     }
 
     const content = postText.value.trim();
 
-    if (!content) {
-        alert("Please write something before publishing!");
+    if (!content || content.length > 500) {
+        alert("Enter a post between 1 and 500 characters.");
         return;
     }
 
-    posts.unshift({
-        id: Date.now() + Math.random(),
-        author: username,
-        content: content,
-        likes: 0,
-        time: new Date().toLocaleString()
-    });
+    publishBtn.disabled = true;
 
-    savePosts();
-    renderPosts();
+    try {
+        const { error } = await db.from("posts").insert({
+            author: username,
+            content: content
+        });
 
-    postText.value = "";
-    charCount.textContent = "0/500";
+        if (error) throw error;
+
+        postText.value = "";
+        charCount.textContent = "0/500";
+        await loadPosts();
+    } catch (error) {
+        console.error("Publish error:", error);
+        alert("Could not publish. Check the Console for the error.");
+    } finally {
+        publishBtn.disabled = false;
+    }
 });
+
+async function loadPosts() {
+    const { data, error } = await db
+        .from("posts")
+        .select("id, author, content, likes, created_at")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("Load posts error:", error);
+        return;
+    }
+
+    posts = data;
+    renderPosts();
+}
 
 function renderPosts() {
     postsContainer.replaceChildren();
@@ -84,7 +104,7 @@ function renderPosts() {
         return;
     }
 
-    posts.forEach((post) => {
+    posts.forEach(post => {
         const article = document.createElement("article");
         article.className = "post";
 
@@ -96,7 +116,7 @@ function renderPosts() {
 
         const time = document.createElement("span");
         time.className = "post-time";
-        time.textContent = post.time;
+        time.textContent = new Date(post.created_at).toLocaleString();
 
         header.append(author, time);
 
@@ -111,32 +131,37 @@ function renderPosts() {
         likeBtn.className = "like-btn";
         likeBtn.textContent = `♥ Like (${post.likes})`;
 
-        likeBtn.addEventListener("click", () => {
-            post.likes++;
-            savePosts();
-            renderPosts();
+        likeBtn.addEventListener("click", async () => {
+            likeBtn.disabled = true;
+
+            const { error } = await db
+                .from("posts")
+                .update({ likes: post.likes + 1 })
+                .eq("id", post.id)
+                .eq("likes", post.likes);
+
+            if (error) {
+                console.error("Like error:", error);
+                alert("Could not update likes.");
+            }
+
+            await loadPosts();
         });
 
-        buttons.appendChild(likeBtn);
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete-btn";
+        deleteBtn.textContent = "Delete";
 
-        if (post.author === username) {
-            const deleteBtn = document.createElement("button");
-            deleteBtn.className = "delete-btn";
-            deleteBtn.textContent = "Delete";
+        deleteBtn.addEventListener("click", () => {
+            alert("Delete is not enabled yet. We'll add it safely next.");
+        });
 
-            deleteBtn.addEventListener("click", () => {
-                posts = posts.filter(item => item.id !== post.id);
-                savePosts();
-                renderPosts();
-            });
-
-            buttons.appendChild(deleteBtn);
-        }
-
+        buttons.append(likeBtn, deleteBtn);
         article.append(header, content, buttons);
         postsContainer.appendChild(article);
     });
 }
 
 updateWelcome();
-renderPosts();
+loadPosts();
+setInterval(loadPosts, 5000);
