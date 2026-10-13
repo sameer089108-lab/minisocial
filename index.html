@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,40 +7,52 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <header class="navbar">
         <h1>MiniSocial</h1>
         <span>Connect. Share. Smile.</span>
     </header>
 
     <main class="container">
+        <section class="auth card">
+            <h2>Your account</h2>
+            <p id="authMessage">Sign up or log in to start posting.</p>
+
+            <label for="authUsername">Username (needed for sign up)</label>
+            <input type="text" id="authUsername" maxlength="30" placeholder="Choose a username" autocomplete="nickname">
+
+            <label for="authEmail">Email</label>
+            <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email">
+
+            <label for="authPassword">Password</label>
+            <input type="password" id="authPassword" placeholder="At least 6 characters" autocomplete="current-password">
+
+            <div class="auth-buttons">
+                <button id="signupBtn">Sign Up</button>
+                <button id="loginBtn" class="secondary-btn">Log In</button>
+                <button id="logoutBtn" class="secondary-btn" hidden>Log Out</button>
+            </div>
+        </section>
 
         <section class="profile card">
             <h2>Welcome!</h2>
-            <label for="username">Your username</label>
-            <input type="text" id="username" placeholder="Enter your name">
-            <button id="saveName">Save Name</button>
-            <p id="welcomeMessage">Choose a username to get started.</p>
+            <p id="welcomeMessage">Log in to use MiniSocial.</p>
         </section>
 
         <section class="create-post card">
             <h2>Create a post</h2>
-            <textarea id="postText"
-                placeholder="What's on your mind?"
-                maxlength="500"></textarea>
+            <textarea id="postText" placeholder="What's on your mind?" maxlength="500" disabled></textarea>
             <div class="post-actions">
                 <span id="charCount">0/500</span>
-                <button id="publishBtn">Publish Post</button>
+                <button id="publishBtn" disabled>Publish Post</button>
             </div>
         </section>
 
         <section class="feed">
             <h2>Latest Posts</h2>
             <div id="posts">
-                <p class="empty-message">No posts yet. Be the first!</p>
+                <p class="empty-message">Loading posts...</p>
             </div>
         </section>
-
     </main>
 
     <footer>
