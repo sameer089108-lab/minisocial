@@ -267,3 +267,107 @@ footer {
     cursor: pointer;
     color: #5b4bdb;
 }
+
+
+/* ---------- Comments ---------- */
+.post-buttons {
+    flex-wrap: wrap;
+}
+
+.comments-toggle-btn {
+    background: #f3f4f8;
+    color: #4939c5;
+}
+
+.comments {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #ececf3;
+}
+
+.comment {
+    background: #f7f7fb;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+}
+
+.comment-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.comment-author {
+    color: #5b4bdb;
+    font-size: 14px;
+}
+
+.comment-time {
+    font-size: 11px;
+    color: #777;
+}
+
+.comment-content {
+    margin: 6px 0 0;
+    white-space: pre-wrap;
+    line-height: 1.45;
+    font-size: 14px;
+}
+
+.comment-delete-btn {
+    margin-top: 8px;
+    padding: 5px 10px;
+    font-size: 12px;
+    background: #fdecea;
+    color: #b42318;
+}
+
+.comment-delete-btn:hover {
+    background: #f9d5d1;
+}
+
+.comment-empty,
+.comment-login-note {
+    color: #777;
+    font-size: 14px;
+    margin: 4px 0 10px;
+}
+
+.comment-error {
+    color: #b42318;
+    font-size: 13px;
+    margin: 6px 0 0;
+}
+
+.comment-form {
+    margin-top: 6px;
+}
+
+.comment-input {
+    min-height: 64px;
+    margin: 0 0 6px;
+    font-size: 16px; /* stops phones zooming in when you tap the box */
+}
+
+.comment-form-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.comment-count {
+    color: #777;
+    font-size: 13px;
+}
+
+.comment-message {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
