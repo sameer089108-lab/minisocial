@@ -38,6 +38,31 @@
             <p id="welcomeMessage">Log in to use MiniSocial.</p>
         </section>
 
+        <section class="my-profile card" id="myProfileSection" hidden>
+            <h2>My Profile</h2>
+            <div class="profile-preview">
+                <img id="profileAvatarPreview" src="https://placehold.co/96x96?text=Me" alt="Profile picture preview">
+                <div>
+                    <strong id="profilePreviewName">Your username</strong>
+                    <p id="profilePreviewBio">Your bio will appear here.</p>
+                </div>
+            </div>
+
+            <label for="profileUsername">Username</label>
+            <input type="text" id="profileUsername" maxlength="30" placeholder="Letters, numbers, dot, underscore or hyphen">
+
+            <label for="profileBio">Bio</label>
+            <textarea id="profileBio" maxlength="160" placeholder="Tell people a little about yourself (160 characters max)"></textarea>
+            <div class="profile-field-hint"><span id="bioCount">0/160</span></div>
+
+            <label for="profileAvatarUrl">Profile picture URL (optional)</label>
+            <input type="url" id="profileAvatarUrl" placeholder="https://example.com/my-picture.jpg" inputmode="url">
+            <p class="profile-field-hint">Use a public image URL beginning with https://. This stores a link, not an uploaded image.</p>
+
+            <button id="saveProfileBtn">Save Profile</button>
+            <p id="profileMessage" role="status" aria-live="polite"></p>
+        </section>
+
         <section class="create-post card">
             <h2>Create a post</h2>
             <textarea id="postText" placeholder="What's on your mind?" maxlength="500" disabled></textarea>

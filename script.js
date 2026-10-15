@@ -1,5 +1,5 @@
-// MiniSocial: Supabase account authentication and shared posts.
-// Use your project's URL and publishable key here. Never put a service_role/secret key in this file.
+// MiniSocial: Supabase authentication, shared posts, and editable profiles.
+// Use the project's publishable key only. Never put a service_role/secret key in browser code.
 const SUPABASE_URL = "https://ovmtfaypbmdokncqmfts.supabase.co";
 const SUPABASE_KEY = "sb_publishable_9D5iFxEKHNY3RDMeA3dk5w_OBbAtxPP";
 
@@ -18,17 +18,37 @@ const publishBtn = document.getElementById("publishBtn");
 const postsContainer = document.getElementById("posts");
 const charCount = document.getElementById("charCount");
 
+const myProfileSection = document.getElementById("myProfileSection");
+const profileUsername = document.getElementById("profileUsername");
+const profileBio = document.getElementById("profileBio");
+const profileAvatarUrl = document.getElementById("profileAvatarUrl");
+const profileAvatarPreview = document.getElementById("profileAvatarPreview");
+const profilePreviewName = document.getElementById("profilePreviewName");
+const profilePreviewBio = document.getElementById("profilePreviewBio");
+const bioCount = document.getElementById("bioCount");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+const profileMessage = document.getElementById("profileMessage");
+
+const DEFAULT_AVATAR = "https://placehold.co/96x96?text=Me";
 let currentUser = null;
+let currentProfile = null;
 let posts = [];
 let loadingPosts = false;
+let profileRequestId = 0;
 
 function showMessage(message) {
     authMessage.textContent = message;
 }
 
+function showProfileMessage(message, isError = false) {
+    profileMessage.textContent = message;
+    profileMessage.classList.toggle("error-message", isError);
+}
+
 function currentUsername() {
+    const profileName = currentProfile?.username;
     const metadataName = currentUser?.user_metadata?.username;
-    return (metadataName || currentUser?.email?.split("@")[0] || "MiniSocial user").slice(0, 30);
+    return (profileName || metadataName || currentUser?.email?.split("@")[0] || "MiniSocial user").slice(0, 30);
 }
 
 function updateAuthUI() {
@@ -41,10 +61,166 @@ function updateAuthUI() {
     logoutBtn.hidden = !loggedIn;
     postText.disabled = !loggedIn;
     publishBtn.disabled = !loggedIn;
+    myProfileSection.hidden = !loggedIn;
     welcomeMessage.textContent = loggedIn
         ? `Hello, ${currentUsername()}! You are logged in.`
         : "Log in to use MiniSocial.";
 }
+
+function updateProfilePreview() {
+    const name = profileUsername.value.trim() || "Your username";
+    const bio = profileBio.value.trim() || "Your bio will appear here.";
+    const url = profileAvatarUrl.value.trim();
+    profilePreviewName.textContent = name;
+    profilePreviewBio.textContent = bio;
+    bioCount.textContent = `${profileBio.value.length}/160`;
+
+    // Only allow HTTP(S) image URLs; avoid javascript:, data:, and other schemes.
+    try {
+        const parsed = url ? new URL(url) : null;
+        profileAvatarPreview.src = parsed && ["https:", "http:"].includes(parsed.protocol)
+            ? parsed.href
+            : DEFAULT_AVATAR;
+    } catch {
+        profileAvatarPreview.src = DEFAULT_AVATAR;
+    }
+}
+
+[profileUsername, profileBio, profileAvatarUrl].forEach(input => {
+    input.addEventListener("input", updateProfilePreview);
+});
+
+profileAvatarPreview.addEventListener("error", () => {
+    profileAvatarPreview.src = DEFAULT_AVATAR;
+});
+
+async function loadProfile() {
+    if (!currentUser) {
+        currentProfile = null;
+        updateAuthUI();
+        return;
+    }
+
+    const requestId = ++profileRequestId;
+    profileMessage.textContent = "";
+    try {
+        const { data, error } = await db
+            .from("profiles")
+            .select("id, username, bio, avatar_url, updated_at")
+            .eq("id", currentUser.id)
+            .maybeSingle();
+
+        if (error) throw error;
+        if (requestId !== profileRequestId || !currentUser) return;
+
+        if (data) {
+            currentProfile = data;
+        } else {
+            // Seed a profile for existing users from their signup username/email.
+            const suggestedName = (
+                currentUser.user_metadata?.username ||
+                currentUser.email?.split("@")[0] ||
+                "user"
+            ).slice(0, 30);
+
+            currentProfile = {
+                id: currentUser.id,
+                username: suggestedName,
+                bio: "",
+                avatar_url: ""
+            };
+
+            const { error: insertError } = await db.from("profiles").insert({
+                id: currentUser.id,
+                username: suggestedName,
+                bio: "",
+                avatar_url: null
+            });
+
+            if (insertError) {
+                // A username collision is recoverable: the user can choose another below.
+                console.warn("Could not create starter profile:", insertError.message);
+            }
+        }
+
+        profileUsername.value = currentProfile.username || "";
+        profileBio.value = currentProfile.bio || "";
+        profileAvatarUrl.value = currentProfile.avatar_url || "";
+        updateProfilePreview();
+        updateAuthUI();
+    } catch (error) {
+        console.error("Load profile error:", error);
+        showProfileMessage("Couldn't load your profile. Check the profiles table and its RLS policies.", true);
+    }
+}
+
+saveProfileBtn.addEventListener("click", async () => {
+    if (!currentUser) {
+        showProfileMessage("Please log in first.", true);
+        return;
+    }
+
+    const username = profileUsername.value.trim();
+    const bio = profileBio.value.trim();
+    const avatarUrl = profileAvatarUrl.value.trim();
+
+    if (!/^[A-Za-z0-9._-]{3,30}$/.test(username)) {
+        showProfileMessage("Username must be 3–30 characters: letters, numbers, dots, underscores or hyphens.", true);
+        return;
+    }
+    if (bio.length > 160) {
+        showProfileMessage("Bio must be 160 characters or fewer.", true);
+        return;
+    }
+
+    let safeAvatarUrl = null;
+    if (avatarUrl) {
+        try {
+            const parsed = new URL(avatarUrl);
+            if (!["https:", "http:"].includes(parsed.protocol)) throw new Error("Invalid URL scheme");
+            safeAvatarUrl = parsed.href;
+        } catch {
+            showProfileMessage("Enter a valid public image URL beginning with https:// or http://.", true);
+            return;
+        }
+    }
+
+    saveProfileBtn.disabled = true;
+    showProfileMessage("Saving profile…");
+    try {
+        const { data, error } = await db.from("profiles").upsert({
+            id: currentUser.id,
+            username,
+            bio,
+            avatar_url: safeAvatarUrl,
+            updated_at: new Date().toISOString()
+        }, { onConflict: "id" }).select("id, username, bio, avatar_url, updated_at").single();
+
+        if (error) throw error;
+
+        currentProfile = data;
+
+        // Keep signup metadata in step with the profile name for fallback compatibility.
+        const { error: metadataError } = await db.auth.updateUser({
+            data: { username }
+        });
+        if (metadataError) console.warn("Profile saved, but auth metadata wasn't updated:", metadataError.message);
+
+        updateProfilePreview();
+        updateAuthUI();
+        showProfileMessage("Profile saved! It will be available on your other devices after refresh.");
+        await loadPosts();
+    } catch (error) {
+        console.error("Save profile error:", error);
+        if (error.code === "23505" || /duplicate key|unique/i.test(error.message || "")) {
+            showProfileMessage("That username is already taken. Please choose another.", true);
+        } else {
+            showProfileMessage(error.message || "Could not save profile. Check the profiles table and RLS policies.", true);
+        }
+    } finally {
+        saveProfileBtn.disabled = !currentUser;
+    }
+});
 
 signupBtn.addEventListener("click", async () => {
     const username = authUsername.value.trim().slice(0, 30);
@@ -75,6 +251,7 @@ signupBtn.addEventListener("click", async () => {
         if (data.session) {
             currentUser = data.user;
             updateAuthUI();
+            await loadProfile();
             showMessage("Account created and you are logged in.");
         } else {
             showMessage("Account created! Check your email and click the verification link, then return here and log in.");
@@ -101,6 +278,7 @@ loginBtn.addEventListener("click", async () => {
         if (error) throw error;
         currentUser = data.user;
         updateAuthUI();
+        await loadProfile();
         showMessage("You are logged in.");
         await loadPosts();
     } catch (error) {
@@ -117,7 +295,13 @@ logoutBtn.addEventListener("click", async () => {
         const { error } = await db.auth.signOut();
         if (error) throw error;
         currentUser = null;
+        currentProfile = null;
+        profileRequestId++;
         updateAuthUI();
+        profileUsername.value = "";
+        profileBio.value = "";
+        profileAvatarUrl.value = "";
+        updateProfilePreview();
         showMessage("You have logged out.");
     } catch (error) {
         console.error("Logout error:", error);
@@ -244,10 +428,26 @@ async function initialise() {
     updateAuthUI();
 
     db.auth.onAuthStateChange((_event, session) => {
-        currentUser = session?.user || null;
+        const nextUser = session?.user || null;
+        const userChanged = nextUser?.id !== currentUser?.id;
+        currentUser = nextUser;
         updateAuthUI();
+
+        // Defer database work out of the auth callback to avoid blocking auth events.
+        if (userChanged && currentUser) {
+            setTimeout(() => {
+                loadProfile();
+                loadPosts();
+            }, 0);
+        } else if (!currentUser) {
+            currentProfile = null;
+            profileRequestId++;
+        }
     });
 
+    if (currentUser) await loadProfile();
+    updateAuthUI();
+    updateProfilePreview();
     await loadPosts();
     setInterval(loadPosts, 10000);
 }

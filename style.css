@@ -114,9 +114,56 @@ button:disabled {
     gap: 10px;
 }
 
-#charCount {
+#charCount, .profile-field-hint {
     color: #777;
     font-size: 13px;
+}
+
+.profile-preview {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 12px 0 20px;
+    overflow-wrap: anywhere;
+}
+
+.profile-preview img {
+    width: 76px;
+    height: 76px;
+    flex: 0 0 76px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #eceaff;
+    background: #f3f4f8;
+}
+
+.profile-preview strong {
+    color: #5b4bdb;
+    font-size: 17px;
+}
+
+.profile-preview p {
+    margin: 6px 0 0;
+    white-space: pre-wrap;
+}
+
+#profileBio {
+    min-height: 80px;
+}
+
+.profile-field-hint {
+    margin: 4px 0 12px;
+    line-height: 1.4;
+}
+
+#profileMessage {
+    margin-bottom: 0;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.error-message {
+    color: #b42318;
 }
 
 .feed h2 {
