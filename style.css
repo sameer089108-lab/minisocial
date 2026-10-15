@@ -245,3 +245,25 @@ footer {
         padding: 10px 12px;
     }
 }
+
+
+#profilePhotoFile {
+    padding: 9px;
+    background: #fafaff;
+}
+
+#uploadPhotoMessage {
+    margin: 8px 0 0;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.optional-url {
+    margin-top: 14px;
+    font-size: 14px;
+}
+
+.optional-url summary {
+    cursor: pointer;
+    color: #5b4bdb;
+}

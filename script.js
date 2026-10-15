@@ -22,6 +22,9 @@ const myProfileSection = document.getElementById("myProfileSection");
 const profileUsername = document.getElementById("profileUsername");
 const profileBio = document.getElementById("profileBio");
 const profileAvatarUrl = document.getElementById("profileAvatarUrl");
+const profilePhotoFile = document.getElementById("profilePhotoFile");
+const uploadPhotoBtn = document.getElementById("uploadPhotoBtn");
+const uploadPhotoMessage = document.getElementById("uploadPhotoMessage");
 const profileAvatarPreview = document.getElementById("profileAvatarPreview");
 const profilePreviewName = document.getElementById("profilePreviewName");
 const profilePreviewBio = document.getElementById("profilePreviewBio");
@@ -153,6 +156,72 @@ async function loadProfile() {
         showProfileMessage("Couldn't load your profile. Check the profiles table and its RLS policies.", true);
     }
 }
+
+
+function showUploadMessage(message, isError = false) {
+    uploadPhotoMessage.textContent = message;
+    uploadPhotoMessage.classList.toggle("error-message", isError);
+}
+
+uploadPhotoBtn.addEventListener("click", async () => {
+    if (!currentUser) {
+        showUploadMessage("Please log in first.", true);
+        return;
+    }
+    const file = profilePhotoFile.files && profilePhotoFile.files[0];
+    if (!file) {
+        showUploadMessage("Choose an image first.", true);
+        return;
+    }
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+        showUploadMessage("Choose a JPG, PNG, WEBP, or GIF image.", true);
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        showUploadMessage("Image must be 5 MB or smaller.", true);
+        return;
+    }
+
+    uploadPhotoBtn.disabled = true;
+    showUploadMessage("Uploading photo…");
+    try {
+        const extensionByType = {
+            "image/jpeg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp",
+            "image/gif": "gif"
+        };
+        const extension = extensionByType[file.type];
+        const path = `${currentUser.id}/${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await db.storage
+            .from("avatars")
+            .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+        if (uploadError) throw uploadError;
+
+        const { data: publicData } = db.storage.from("avatars").getPublicUrl(path);
+        const publicUrl = publicData.publicUrl;
+        const { data, error } = await db.from("profiles").upsert({
+            id: currentUser.id,
+            username: profileUsername.value.trim() || currentUsername(),
+            bio: profileBio.value.trim(),
+            avatar_url: publicUrl,
+            updated_at: new Date().toISOString()
+        }, { onConflict: "id" }).select("id, username, bio, avatar_url, updated_at").single();
+        if (error) throw error;
+
+        currentProfile = data;
+        profileAvatarUrl.value = publicUrl;
+        updateProfilePreview();
+        updateAuthUI();
+        showUploadMessage("Photo uploaded and profile picture saved!");
+    } catch (error) {
+        console.error("Avatar upload error:", error);
+        showUploadMessage(error.message || "Upload failed. Check the Storage policies and try again.", true);
+    } finally {
+        uploadPhotoBtn.disabled = !currentUser;
+    }
+});
 
 saveProfileBtn.addEventListener("click", async () => {
     if (!currentUser) {
@@ -301,6 +370,8 @@ logoutBtn.addEventListener("click", async () => {
         profileUsername.value = "";
         profileBio.value = "";
         profileAvatarUrl.value = "";
+        profilePhotoFile.value = "";
+        showUploadMessage("");
         updateProfilePreview();
         showMessage("You have logged out.");
     } catch (error) {

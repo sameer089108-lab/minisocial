@@ -55,9 +55,16 @@
             <textarea id="profileBio" maxlength="160" placeholder="Tell people a little about yourself (160 characters max)"></textarea>
             <div class="profile-field-hint"><span id="bioCount">0/160</span></div>
 
-            <label for="profileAvatarUrl">Profile picture URL (optional)</label>
-            <input type="url" id="profileAvatarUrl" placeholder="https://example.com/my-picture.jpg" inputmode="url">
-            <p class="profile-field-hint">Use a public image URL beginning with https://. This stores a link, not an uploaded image.</p>
+            <label for="profilePhotoFile">Upload profile picture</label>
+            <input type="file" id="profilePhotoFile" accept="image/png,image/jpeg,image/webp,image/gif">
+            <p class="profile-field-hint">Choose an image from your phone or laptop (max 5 MB). Your picture will be publicly viewable.</p>
+            <button id="uploadPhotoBtn" type="button" class="secondary-btn">Upload Photo</button>
+            <p id="uploadPhotoMessage" role="status" aria-live="polite"></p>
+            <details class="optional-url">
+                <summary>Or use an image URL</summary>
+                <label for="profileAvatarUrl">Profile picture URL (optional)</label>
+                <input type="url" id="profileAvatarUrl" placeholder="https://example.com/my-picture.jpg" inputmode="url">
+            </details>
 
             <button id="saveProfileBtn">Save Profile</button>
             <p id="profileMessage" role="status" aria-live="polite"></p>
